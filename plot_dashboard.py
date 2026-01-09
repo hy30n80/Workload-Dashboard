@@ -222,24 +222,28 @@ def find_plot_path(plot_type: str, version: str, split: str, distribution: str, 
         # 파일명 패턴: {Split}_{Benchmark}_{DB}_-_{Distribution}_Distribution.png
         # distribution 이름을 적절히 변환 (uniform -> Uniform, zipf_query_len -> Zipf Query Len)
         dist_title = distribution.replace('_', ' ').title()
-        pattern = f"{split}_{benchmark}_{db}_-_{dist_title}_Distribution.png"
+        
+        # v7의 BIRD Dev split: 도메인 이름을 그대로 사용 (파일명이 이미 도메인 이름으로 되어 있음)
+        # 다른 경우는 db를 그대로 사용
+        search_db = db
+        pattern = f"{split}_{benchmark}_{search_db}_-_{dist_title}_Distribution.png"
         file_path = plot_dir / pattern
         if file_path.exists():
             return file_path
         
         # 대체 패턴 시도 (정확한 매칭 실패 시)
-        for file in plot_dir.glob(f"{split}_{benchmark}_{db}*.png"):
+        for file in plot_dir.glob(f"{split}_{benchmark}_{search_db}*.png"):
             return file
         
         # v16 이전 구조 호환성 (version/distribution/ - 파일명에 Split 포함)
         plot_dir_old = DISTRIBUTION_PLOTS_DIR / version / distribution
         if plot_dir_old.exists():
-            pattern_old = f"{split}_{benchmark}_{db}_-_{dist_title}_Distribution.png"
+            pattern_old = f"{split}_{benchmark}_{search_db}_-_{dist_title}_Distribution.png"
             file_path_old = plot_dir_old / pattern_old
             if file_path_old.exists():
                 return file_path_old
             # 대체 패턴 시도
-            for file in plot_dir_old.glob(f"{split}_{benchmark}_{db}*.png"):
+            for file in plot_dir_old.glob(f"{split}_{benchmark}_{search_db}*.png"):
                 return file
     
     elif plot_type == "sampling_method":
