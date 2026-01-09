@@ -41,6 +41,15 @@ def get_available_versions() -> List[str]:
     
     return sorted(list(versions), reverse=True)  # 최신 버전부터
 
+# 버전이 v7 이상인지 확인 (함수 정의 순서를 위해 앞에 배치)
+def is_version_v7_or_above(version: str) -> bool:
+    """버전이 v7 이상인지 확인합니다."""
+    try:
+        version_num = int(version.lstrip('v'))
+        return version_num >= 7
+    except ValueError:
+        return False
+
 # 사용 가능한 split 목록
 def get_available_splits(version: str) -> List[str]:
     """특정 버전에서 사용 가능한 split 목록을 반환합니다."""
@@ -52,6 +61,21 @@ def get_available_splits(version: str) -> List[str]:
         for item in plot_dir.iterdir():
             if item.is_dir() and item.name in ["Dev", "Train"]:
                 splits.add(item.name)
+    
+    # distribution_plots에서 확인
+    dist_dir = DISTRIBUTION_PLOTS_DIR / version
+    if dist_dir.exists():
+        for item in dist_dir.iterdir():
+            if item.is_dir() and item.name in ["Dev", "Train"]:
+                splits.add(item.name)
+    
+    # augmented_template_distribution_plots에서 확인 (v7 이상)
+    if is_version_v7_or_above(version):
+        aug_dir = AUGMENTED_TEMPLATE_PLOTS_DIR / version / "template_id_count"
+        if aug_dir.exists():
+            for item in aug_dir.iterdir():
+                if item.is_dir() and item.name in ["Dev", "Train"]:
+                    splits.add(item.name)
     
     return sorted(list(splits))
 
@@ -251,15 +275,6 @@ def find_plot_path(plot_type: str, version: str, split: str, distribution: str, 
             return file_path
     
     return None
-
-# 버전이 v7 이상인지 확인
-def is_version_v7_or_above(version: str) -> bool:
-    """버전이 v7 이상인지 확인합니다."""
-    try:
-        version_num = int(version.lstrip('v'))
-        return version_num >= 7
-    except ValueError:
-        return False
 
 # Streamlit 앱
 def main():
